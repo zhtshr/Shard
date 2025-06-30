@@ -1,4 +1,5 @@
 # Shard: A Scalable and Resize-optimized Hash Index on Disaggregated Memory
+This project is built on top of smart (https://github.com/madsys-dev/smart).
 
 ## System Requirements
 * **Mellanox InfiniBand RNIC** (ConnectX-6 in our testbed). Mellanox OpenFabrics Enterprise Distribution for Linux (MLNX_OFED) v5.3-1.0.0.1. Other OFED versions are under testing.
