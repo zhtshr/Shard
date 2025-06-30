@@ -1,0 +1,10 @@
+{
+  "servers": [
+    "10.77.110.158"
+  ],
+  "port": 12345,
+  "block_size": 1048576,
+  "qp_num": -1,
+  "dump_file_path": "test_rdma.csv",
+  "type": "read"
+}

@@ -1,0 +1,11 @@
+.idea
+.vscode
+.cache
+build
+script-old
+thirdparty
+cmake-build-debug
+__pycache__
+nohup.out
+config/datastructure.json
+*.result
