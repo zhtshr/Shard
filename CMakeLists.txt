@@ -12,3 +12,4 @@ add_subdirectory(smart)
 add_subdirectory(test)
 
 add_subdirectory(shard)
+add_subdirectory(farm)
