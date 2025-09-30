@@ -279,6 +279,15 @@ namespace sds {
                 }
             }
 
+            double get_max_latency(int id) {
+                if (global_latency_interval_[id].empty()) {
+                    return -1;
+                } else {
+                    std::sort(global_latency_interval_[id].begin(), global_latency_interval_[id].end());
+                    return global_latency_interval_[id].back() / 1000.0;
+                }
+            }
+
             double get_latency() {
                 if (global_latency_.empty()) {
                     uint64_t global_ops = global_ops_.load();
@@ -308,11 +317,21 @@ namespace sds {
                 }
             }
 
+            double get_max_latency() {
+                if (global_latency_.empty()) {
+                    return -1;
+                } else {
+                    std::sort(global_latency_.begin(), global_latency_.end());
+                    return global_latency_.back() / 1000.0;
+                }
+            }
+
             void dump_result() {
                 SDS_INFO("%s: workload = %s, #thread = %d, #coro_per_thread = %d, "
                          "key length = %ld, value length = %ld, max key = %ld, "
                          "throughput = %.3lf M, P50 latency = %.3lf us, "
-                         "P99 latency = %.3lf us, P99.9 latency = %.3lf us\n",
+                         "P99 latency = %.3lf us, P99.9 latency = %.3lf us, "
+                         "Max latency = %.3lf us\n",
                          T::Name(),
                          dataset_.c_str(),
                          nr_threads_,
@@ -323,16 +342,18 @@ namespace sds {
                          get_throughput() / 1000.0 / 1000.0,
                          get_latency(),
                          get_99latency(),
-                         get_999latency());
+                         get_999latency(),
+                         get_max_latency());
                 if (display_interval_result_) {
                     for (int i = 0; i < intervals_; i++) {
                         SDS_INFO("interval %d thoughput = %.3lf M, "
-                                "P50 latency = %.3lf us, P99 latency = %.3lf us, P99.9 latency = %.3lf us\n",
+                                "P50 latency = %.3lf us, P99 latency = %.3lf us, P99.9 latency = %.3lf us, max latency = %.3lf us\n",
                                 i,
                                 get_throughput(i) / 1000.0 / 1000.0,
                                 get_latency(i),
                                 get_99latency(i),
-                                get_999latency(i));
+                                get_999latency(i),
+                                get_max_latency(i));
                     }
                 }
 
@@ -354,7 +375,7 @@ namespace sds {
                     return;
                 }
 
-                fprintf(fout, "%s, %s, %d, %d, %ld, %ld, %ld, %.3lf, %.3lf, %.3lf, %.3lf\n",
+                fprintf(fout, "%s, %s, %d, %d, %ld, %ld, %ld, %.3lf, %.3lf, %.3lf, %.3lf %.3lf\n",
                         T::Name(),
                         dataset_.c_str(),
                         nr_threads_,
@@ -365,15 +386,17 @@ namespace sds {
                         get_throughput() / 1000.0 / 1000.0 * 3.0,
                         get_latency(),
                         get_99latency(),
-                        get_999latency());
+                        get_999latency(),
+                        get_max_latency());
                 if (display_interval_result_) {
                     for (int i = 0; i < intervals_; i++) {
-                        fprintf(fout, "%d, %.3lf, %.3lf, %.3lf, %.3lf\n",
+                        fprintf(fout, "%d, %.3lf, %.3lf, %.3lf, %.3lf, %.3lf\n",
                                 i,
                                 get_throughput(i) / 1000.0 / 1000.0,
                                 get_latency(i),
                                 get_99latency(i),
-                                get_999latency(i));
+                                get_999latency(i),
+                                get_max_latency(i));
                     }
                 }
 
@@ -599,6 +622,10 @@ namespace sds {
                         read_frac = 0.86 ;
                         gen = new SepHash_gen::MixGraph(max_key_ / (node_num_ * nr_threads_ * tasks_per_thread_),
                                 key_dist_a_, key_dist_b_, (shardid * nr_threads_ + tid) * tasks_per_thread_ + task_id);
+                    } else {
+                        insert_frac = 0 ;
+                        read_frac = 0.5 ;
+                        gen = new SepHash_gen::zipf99( max_key_ / (node_num_ * nr_threads_ * tasks_per_thread_)  ) ;
                     }
 
                     std::string value = std::string( 8 , '1' ) ; 

@@ -51,9 +51,9 @@ static inline uint64_t MurmurHash64A ( const void * key, int len, unsigned int s
   return h;
 }
 
-static inline void split_hash(uint64_t hash, uint64_t log_fp, uint64_t &bucket, uint8_t &fp) {
+static inline void split_hash(uint64_t hash, uint64_t buckets, uint64_t log_fp, uint64_t &bucket, uint8_t &fp) {
     fp = hash & ((1 << log_fp) - 1);
-    bucket = hash >> log_fp;
+    bucket = (hash >> log_fp) % buckets;
 }
 
 #endif  // #ifndef _HASHUTIL_H_

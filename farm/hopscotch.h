@@ -16,7 +16,6 @@
 #include "smart/target.h"
 #include "smart/backoff.h"
 #include "hashutil.h"
-#include "locallocktable.h"
 
 using namespace sds;
 
@@ -27,21 +26,9 @@ using namespace sds;
 #define LOG_BUCKETS     18
 #define INIT_BUCKETS    (1 << (LOG_BUCKETS))
 #define LOG_FPRINT      7
-#define LOG_SLOTS   6
-#define LOG_GROUP   3
-#define LV1_SLOTS   (1 << (LOG_SLOTS))
-#define LV2_SLOTS   8
-#define SLOT_GROUP  (1 << (LOG_GROUP))
-#define CHOICE      2
-#define RESIZE_LIM  8
-#define RESIZE_THR  0.8
-#define LOCK_ID     0
-#define OVERFLOW_ID 1
-#define VER_BEGIN   2
-#define VER_END     7
-#define DIRTY_ID    7
-#define DATA_BLOCK  4096
 
+#define LOCK_ID     0
+#define DATA_BLOCK  4096
 #define BLOCK_UNIT  64
 #define BLOCK_LEN   4096
 
@@ -202,9 +189,11 @@ private:
 
     int unlock_bucket(Bucket *bucket_buf, uint64_t bucket);
 
+    int unlock_free_bucket(Bucket *bucket_buf, uint64_t bucket, uint64_t old_bucket_addr);
+
     int move_slot(Slot *slot_group, uint64_t bucket_pos, uint64_t pos, uint64_t begin);
 
-    bool move_bucket(uint64_t block, uint64_t offset, Slot *slot_group);
+    bool move_bucket(Bucket *bucket, uint64_t bucket_id);
 
     int search_bucket(const std::string &key, std::string &value, const Bucket bucket, uint8_t fp);
 
@@ -212,8 +201,7 @@ private:
 
     int insert_bucket(const std::string &key, Slot new_slot, Slot *slot_group, uint64_t bucket_addr, uint8_t fp, uint64_t begin);
 
-    int update_bucket(const std::string &key, BackoffGuard &guard, int id, Slot new_slot, Slot *slot_group,
-                   uint64_t bin_addr, int slots, int begin, uint8_t fp);
+    int update_bucket(const std::string &key, Bucket *bucket, Slot new_slot, uint8_t fp, uint64_t bucket_addr);
 
     int remove_bucket(const std::string &key, BackoffGuard &guard, int id, Slot *slot_group,
                    uint64_t bin_addr, int slots, int begin, uint8_t fp);
@@ -275,7 +263,6 @@ private:
     int lv1_retry_cnt_ = 0;
     int lv2_retry_cnt_ = 0;
 
-    LocalLockTable *local_lock_table_ = nullptr;
 };
 
 class RemoteHopscotchMultiShard {
